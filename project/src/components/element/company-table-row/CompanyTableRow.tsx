@@ -1,0 +1,161 @@
+import React, { useCallback, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../../hooks";
+import {
+  deleteCompany,
+  deleteCompanyId,
+  toggleCompanyId,
+  updateCompany,
+} from "../../../store/companySlice";
+import { ICompanyItem } from "../../../types/types";
+
+interface ICompanyTableRow {
+  company: ICompanyItem;
+  checkedIds: string[];
+  isEvenRow: boolean;
+}
+
+function CompanyTableRow({
+  company,
+  checkedIds,
+  isEvenRow,
+}: ICompanyTableRow): JSX.Element {
+  const dispatch = useAppDispatch();
+  const { id, companyName, address } = company;
+  const [isEdit, setIsEdit] = useState({
+    companyName: { edit: false, value: companyName },
+    address: { edit: false, value: address },
+  });
+  const newCompanyId = useAppSelector((state) => state.company.newCompanyId);
+
+  const handleInputClick = useCallback(() => {
+    dispatch(toggleCompanyId([id]));
+  }, [dispatch, id]);
+
+  const handleDeleteCompany = useCallback(() => {
+    dispatch(deleteCompany([id]));
+    dispatch(deleteCompanyId(id));
+  }, [dispatch, id]);
+
+  const handleUpdateCompanyInfo = () => {
+    // Получаем текущее значение для отправки в store до того, как setIsEdit изменит его асинхронно
+    const updatedInfo = {
+      id: id,
+      companyName: isEdit.companyName.value,
+      address: isEdit.address.value,
+    };
+  
+    // Сбрасываем режим редактирования
+    setIsEdit((prev) => ({
+      ...prev,
+      companyName: { ...prev.companyName, edit: false },
+      address: { ...prev.address, edit: false },
+    }));
+  
+    // Отправляем обновленные данные в store
+    dispatch(updateCompany(updatedInfo));
+  };
+
+  const updateCompanyInfo = useCallback(
+    (
+      e: React.ChangeEvent<HTMLInputElement>,
+      field: "companyName" | "address"
+    ) => {
+      const value = e.target.value;
+      setIsEdit((prev) => ({
+        ...prev,
+        [field]: { ...prev[field], value },
+      }));
+    },
+    []
+  );
+
+  const toggleEdit = useCallback((field: "companyName" | "address") => {
+    setIsEdit((prev) => ({
+      ...prev,
+      [field]: { ...prev[field], edit: true },
+    }));
+  }, []);
+
+  const isChecked = checkedIds.includes(id);
+  const isEditRow = isEdit.companyName.edit || isEdit.address.edit;
+
+  return (
+    <tr
+      className={`${isEvenRow ? "bg-slate-100" : ""} ${
+        isChecked ? "bg-blue-100" : ""
+      }`}
+    >
+      <td className="w-[60px] text-center align-middle p-2 border border-slate-300">
+        <input
+          onChange={handleInputClick}
+          type="checkbox"
+          name="company-all"
+          id="company-{1}"
+          checked={isChecked}
+        />
+      </td>
+      <td
+        className="p-2 border border-slate-300"
+        onClick={() => toggleEdit("companyName")}
+      >
+        {!isEdit.companyName.edit ? (
+          <span>{companyName}</span>
+        ) : (
+          <input
+            className="p-1 px-3 rounded border border-gray-300"
+            type="text"
+            onChange={(e) => updateCompanyInfo(e, "companyName")}
+            value={isEdit.companyName.value}
+          />
+        )}
+      </td>
+      <td
+        className="p-2 border border-slate-300"
+        onClick={() => toggleEdit("address")}
+      >
+        {!isEdit.address.edit ? (
+          <span>{address}</span>
+        ) : (
+          <input
+            className="p-1 px-3 rounded border border-gray-300"
+            type="text"
+            onChange={(e) => updateCompanyInfo(e, "address")}
+            value={isEdit.address.value}
+          />
+        )}
+      </td>
+      <td className="p-2 border text-center border-slate-300">
+        {newCompanyId === id ? (
+          <button
+            onClick={handleUpdateCompanyInfo}
+            className="text-white bg-blue-500 p-1 px-2 rounded"
+          >
+            Сохранить
+          </button>
+        ) : (
+          <>
+            {isEditRow ? (
+              <button
+                onClick={handleUpdateCompanyInfo}
+                className="text-white bg-blue-500 p-1 px-2 rounded"
+              >
+                Обновить
+              </button>
+            ) : (
+              <button
+                onClick={handleDeleteCompany}
+                className="text-white bg-red-500 p-1 px-2 rounded"
+              >
+                Удалить
+              </button>
+            )}
+          </>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+const CompanyTableRowMemo = React.memo(CompanyTableRow);
+
+export default CompanyTableRowMemo;
