@@ -8,7 +8,12 @@ import {
   updateCompany,
 } from "../../../store/companySlice";
 import { ICompanyItem } from "../../../types/types";
-import CustomButton from "../../ui/custom-button/CustomButton";
+import {
+  createUpdatedInfo,
+  isCompanyChecked,
+} from "../../../utils/companyUtils";
+import EditableCellMemo from "../../ui/editable-cell/EditableCell";
+import ActionButtonMemo from "../action-button/ActionButton";
 
 interface ICompanyTableRow {
   company: ICompanyItem;
@@ -23,6 +28,7 @@ function CompanyTableRow({
 }: ICompanyTableRow): JSX.Element {
   const dispatch = useAppDispatch();
   const { id, companyName, address } = company;
+
   const [isEdit, setIsEdit] = useState({
     companyName: { edit: false, value: companyName },
     address: { edit: false, value: address },
@@ -45,13 +51,12 @@ function CompanyTableRow({
     dispatch(deleteCompanyId(id));
   }, [dispatch, id]);
 
-  const handleUpdateCompanyInfo = () => {
-    const updatedInfo = {
-      id: id,
-      companyName: isEdit.companyName.value,
-      address: isEdit.address.value,
-    };
-
+  const handleUpdateCompanyInfo = useCallback(() => {
+    const updatedInfo = createUpdatedInfo(
+      id,
+      isEdit.companyName.value,
+      isEdit.address.value
+    );
     dispatch(updateCompany(updatedInfo));
 
     setIsEdit((prev) => ({
@@ -59,7 +64,7 @@ function CompanyTableRow({
       companyName: { edit: false, value: prev.companyName.value },
       address: { edit: false, value: prev.address.value },
     }));
-  };
+  }, [dispatch, id, isEdit.companyName.value, isEdit.address.value]);
 
   const handleSaveCompany = () => {
     handleUpdateCompanyInfo();
@@ -87,7 +92,7 @@ function CompanyTableRow({
     }));
   };
 
-  const isChecked = checkedIds.includes(id);
+  const isChecked = isCompanyChecked(id, checkedIds);
   const isEditRow = isEdit.companyName.edit || isEdit.address.edit;
 
   return (
@@ -100,66 +105,30 @@ function CompanyTableRow({
         <input
           onChange={handleInputClick}
           type="checkbox"
-          name="company-all"
-          id="company-{1}"
+          name={`company-${id}`}
+          id={`company-${id}`}
           checked={isChecked}
         />
       </td>
-      <td
-        className="p-2 border border-slate-300"
-        onClick={() => toggleEdit("companyName")}
-      >
-        {!isEdit.companyName.edit ? (
-          <span>{companyName}</span>
-        ) : (
-          <input
-            className="p-0.5 px-2 rounded border border-gray-300"
-            type="text"
-            onChange={(e) => updateCompanyInfo(e, "companyName")}
-            value={isEdit.companyName.value}
-          />
-        )}
-      </td>
-      <td
-        className="p-2 border border-slate-300"
-        onClick={() => toggleEdit("address")}
-      >
-        {!isEdit.address.edit ? (
-          <span>{address}</span>
-        ) : (
-          <input
-            className="p-0.5 px-2 rounded border border-gray-300"
-            type="text"
-            onChange={(e) => updateCompanyInfo(e, "address")}
-            value={isEdit.address.value}
-          />
-        )}
-      </td>
-      <td className="p-2 border text-center border-slate-300">
-        {newCompanyId === id ? (
-          <CustomButton
-            className="bg-blue-500"
-            buttonText="Сохранить"
-            onClick={handleSaveCompany}
-          />
-        ) : (
-          <>
-            {isEditRow ? (
-              <CustomButton
-                className="bg-blue-500"
-                buttonText="Обновить"
-                onClick={handleUpdateCompanyInfo}
-              />
-            ) : (
-              <CustomButton
-                className="bg-red-500"
-                buttonText="Удалить"
-                onClick={handleDeleteCompany}
-              />
-            )}
-          </>
-        )}
-      </td>
+      <EditableCellMemo
+        value={isEdit.companyName.value}
+        isEdit={isEdit.companyName.edit}
+        onToggleEdit={() => toggleEdit("companyName")}
+        onChange={(e) => updateCompanyInfo(e, "companyName")}
+      />
+      <EditableCellMemo
+        value={isEdit.address.value}
+        isEdit={isEdit.address.edit}
+        onToggleEdit={() => toggleEdit("address")}
+        onChange={(e) => updateCompanyInfo(e, "address")}
+      />
+      <ActionButtonMemo
+        isEditing={isEditRow}
+        isNewCompany={newCompanyId === id}
+        onSave={handleSaveCompany}
+        onDelete={handleDeleteCompany}
+        onUpdate={handleUpdateCompanyInfo}
+      />
     </tr>
   );
 }

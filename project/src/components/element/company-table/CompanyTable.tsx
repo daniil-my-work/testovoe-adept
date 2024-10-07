@@ -15,7 +15,11 @@ function CompanyTable({
   const dispatch = useAppDispatch();
   const companies = useAppSelector((state) => state.company.companies);
   const checkedIds = useAppSelector((state) => state.company.checkedCompanyIds);
-  const companyIds = companies.map((company) => company.id);
+
+  const companyIds = useMemo(
+    () => companies.map((company) => company.id),
+    [companies]
+  );
 
   // Проверяем, выбраны ли все компании
   const isCheckedAll = useMemo(() => {
@@ -53,27 +57,18 @@ function CompanyTable({
         <tbody>
           {companies &&
             companies.length > 0 &&
-            companies.map((company, index) => {
-              const isEvenRow = index % 2 === 0;
-
-              return (
-                <CompanyTableRowMemo
-                  key={`company-${index}`}
-                  company={company}
-                  checkedIds={checkedIds}
-                  isEvenRow={isEvenRow}
-                />
-              );
-            })}
+            companies.map((company, index) => (
+              <CompanyTableRowMemo
+                key={`company-${index}`}
+                company={company}
+                checkedIds={checkedIds}
+                isEvenRow={index % 2 === 0}
+              />
+            ))}
         </tbody>
       </table>
 
-      {companies.length > 0 && (
-        <div
-          ref={childrenRef}
-          className="w-full h-2"
-        ></div>
-      )}
+      {companies.length > 0 && <div ref={childrenRef} className="w-full"></div>}
     </div>
   );
 }

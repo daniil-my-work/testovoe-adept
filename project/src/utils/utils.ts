@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ICompanyItem } from "../types/types";
 
-
 function generateRandomCompanyName(): string {
     const legalForm = ["ИП", "ООО", "ПАО", "ЗАО"];
     const сompanyName = ["Ленина", "Мира", "Советская", "Победы", "Фрунзе"];
@@ -39,5 +38,7 @@ const companyList = generateCompanies(100);
 
 // Преобразование массива в JSON
 const companyListJson = JSON.stringify(companyList, null, 2);
+// console.log(companyListJson);
 
-console.log(companyListJson);
+
+
