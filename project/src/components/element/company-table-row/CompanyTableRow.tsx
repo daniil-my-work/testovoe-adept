@@ -1,12 +1,14 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
 import {
+  clearNewCompanyId,
   deleteCompany,
   deleteCompanyId,
   toggleCompanyId,
   updateCompany,
 } from "../../../store/companySlice";
 import { ICompanyItem } from "../../../types/types";
+import CustomButton from "../../ui/custom-button/CustomButton";
 
 interface ICompanyTableRow {
   company: ICompanyItem;
@@ -27,6 +29,13 @@ function CompanyTableRow({
   });
   const newCompanyId = useAppSelector((state) => state.company.newCompanyId);
 
+  useEffect(() => {
+    setIsEdit({
+      companyName: { edit: false, value: companyName },
+      address: { edit: false, value: address },
+    });
+  }, [companyName, address]);
+
   const handleInputClick = useCallback(() => {
     dispatch(toggleCompanyId([id]));
   }, [dispatch, id]);
@@ -37,22 +46,24 @@ function CompanyTableRow({
   }, [dispatch, id]);
 
   const handleUpdateCompanyInfo = () => {
-    // Получаем текущее значение для отправки в store до того, как setIsEdit изменит его асинхронно
     const updatedInfo = {
       id: id,
       companyName: isEdit.companyName.value,
       address: isEdit.address.value,
     };
-  
-    // Сбрасываем режим редактирования
+
+    dispatch(updateCompany(updatedInfo));
+
     setIsEdit((prev) => ({
       ...prev,
-      companyName: { ...prev.companyName, edit: false },
-      address: { ...prev.address, edit: false },
+      companyName: { edit: false, value: prev.companyName.value },
+      address: { edit: false, value: prev.address.value },
     }));
-  
-    // Отправляем обновленные данные в store
-    dispatch(updateCompany(updatedInfo));
+  };
+
+  const handleSaveCompany = () => {
+    handleUpdateCompanyInfo();
+    dispatch(clearNewCompanyId());
   };
 
   const updateCompanyInfo = useCallback(
@@ -69,19 +80,19 @@ function CompanyTableRow({
     []
   );
 
-  const toggleEdit = useCallback((field: "companyName" | "address") => {
+  const toggleEdit = (field: "companyName" | "address") => {
     setIsEdit((prev) => ({
       ...prev,
       [field]: { ...prev[field], edit: true },
     }));
-  }, []);
+  };
 
   const isChecked = checkedIds.includes(id);
   const isEditRow = isEdit.companyName.edit || isEdit.address.edit;
 
   return (
     <tr
-      className={`${isEvenRow ? "bg-slate-100" : ""} ${
+      className={`${isEvenRow && !isChecked ? "bg-slate-100" : ""} ${
         isChecked ? "bg-blue-100" : ""
       }`}
     >
@@ -102,7 +113,7 @@ function CompanyTableRow({
           <span>{companyName}</span>
         ) : (
           <input
-            className="p-1 px-3 rounded border border-gray-300"
+            className="p-0.5 px-2 rounded border border-gray-300"
             type="text"
             onChange={(e) => updateCompanyInfo(e, "companyName")}
             value={isEdit.companyName.value}
@@ -117,7 +128,7 @@ function CompanyTableRow({
           <span>{address}</span>
         ) : (
           <input
-            className="p-1 px-3 rounded border border-gray-300"
+            className="p-0.5 px-2 rounded border border-gray-300"
             type="text"
             onChange={(e) => updateCompanyInfo(e, "address")}
             value={isEdit.address.value}
@@ -126,28 +137,25 @@ function CompanyTableRow({
       </td>
       <td className="p-2 border text-center border-slate-300">
         {newCompanyId === id ? (
-          <button
-            onClick={handleUpdateCompanyInfo}
-            className="text-white bg-blue-500 p-1 px-2 rounded"
-          >
-            Сохранить
-          </button>
+          <CustomButton
+            className="bg-blue-500"
+            buttonText="Сохранить"
+            onClick={handleSaveCompany}
+          />
         ) : (
           <>
             {isEditRow ? (
-              <button
+              <CustomButton
+                className="bg-blue-500"
+                buttonText="Обновить"
                 onClick={handleUpdateCompanyInfo}
-                className="text-white bg-blue-500 p-1 px-2 rounded"
-              >
-                Обновить
-              </button>
+              />
             ) : (
-              <button
+              <CustomButton
+                className="bg-red-500"
+                buttonText="Удалить"
                 onClick={handleDeleteCompany}
-                className="text-white bg-red-500 p-1 px-2 rounded"
-              >
-                Удалить
-              </button>
+              />
             )}
           </>
         )}

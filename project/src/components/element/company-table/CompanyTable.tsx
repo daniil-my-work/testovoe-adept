@@ -1,9 +1,17 @@
-import { useMemo } from "react";
+import { RefObject, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { addCompanyIds, clearCompanyIds } from "../../../store/companySlice";
 import CompanyTableRowMemo from "../company-table-row/CompanyTableRow";
 
-function CompanyTable(): JSX.Element {
+interface CompanyTableProps {
+  parentRef: RefObject<HTMLDivElement>;
+  childrenRef: RefObject<HTMLDivElement>;
+}
+
+function CompanyTable({
+  parentRef,
+  childrenRef,
+}: CompanyTableProps): JSX.Element {
   const dispatch = useAppDispatch();
   const companies = useAppSelector((state) => state.company.companies);
   const checkedIds = useAppSelector((state) => state.company.checkedCompanyIds);
@@ -23,7 +31,7 @@ function CompanyTable(): JSX.Element {
   }
 
   return (
-    <div className="h-[80vh] overflow-y-auto">
+    <div ref={parentRef} className="h-[70vh] overflow-y-auto">
       <table className="w-full border border-slate-400 border-collapse">
         <thead>
           <tr className="bg-slate-200">
@@ -59,6 +67,13 @@ function CompanyTable(): JSX.Element {
             })}
         </tbody>
       </table>
+
+      {companies.length > 0 && (
+        <div
+          ref={childrenRef}
+          className="w-full h-2"
+        ></div>
+      )}
     </div>
   );
 }

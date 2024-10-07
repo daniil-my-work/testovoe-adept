@@ -52,6 +52,9 @@ const companySlice = createSlice({
         setNewCompanyId: (state, action: PayloadAction<string>) => {
             state.newCompanyId = action.payload;
         },
+        clearNewCompanyId: (state) => {
+            state.newCompanyId = '';
+        },
         addCompanyIds: (state, action: PayloadAction<string[]>) => {
             state.checkedCompanyIds = action.payload;
         },
@@ -61,5 +64,5 @@ const companySlice = createSlice({
     }
 });
 
-export const { setCompany, deleteCompany, updateCompany, toggleCompanyId, deleteCompanyId, setNewCompanyId, addCompanyIds, clearCompanyIds } = companySlice.actions;
+export const { setCompany, deleteCompany, updateCompany, toggleCompanyId, deleteCompanyId, setNewCompanyId, clearNewCompanyId, addCompanyIds, clearCompanyIds } = companySlice.actions;
 export default companySlice.reducer;
